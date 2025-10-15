@@ -2,12 +2,14 @@
 //Criar geração de relatórios em listas por módulos.
 //Adicionar no módulo de atualização do estudante e do professor as opções de atualizar CPF, NOME e SEXO.
 //Necessário validar CPF e validar os números de matrícula e CPF (não podem se repetir).
+//Mudar opções do módulo de curso.
 
 #include <stdio.h>
 #include <string.h>
 
 #define studentSize 3
 #define professorSize 3
+#define courseSize 3
 
 //Constantes de retorno.
 #define REG_SUCCESS -1
@@ -20,6 +22,7 @@
 #define ERROR_DATE -8
 #define VALIDATE_DATE_SUCCESS -9
 #define INVALID_DATE -10
+#define FOUND -11
 
 //Struct definition
 typedef struct stu{
@@ -40,6 +43,15 @@ typedef struct prof{
     int active;
 }professor;
 
+typedef struct course {
+    int code;
+    char courseName[100];
+    int professorRegistration; 
+    int semester;
+    int insertStudent[100];
+    int countStu;
+} course;
+
 //Functions prototypes
 int generalMenu();
 int studentMenu();
@@ -55,13 +67,19 @@ int deleteProfessor(professor professorList[], int sCount);
 int validate_St_Date (student studentList [], int sCount);
 int validate_Prof_Date (professor professorList[], int sCount);
 int validateStCPF(student studentList[], int sCount);
+int courseMenu();
+int registerCourse(course courseList[], int cCount, professor professorList[], int count);
+int findProfessor(professor professorList[], int count, int professorRegistration);
+int updateCourseProfessor(course courseList[], professor professorList[], int sCount, int cCount);
 
 int main(void) {
     int option = -1;
     student studentList[studentSize];
     professor professorList[professorSize];
+    course courseList[courseSize];
     int sCount = 0;
     int pCount = 0;
+    int cCount = 0;
 
     printf("School Project\n");
 
@@ -285,7 +303,77 @@ int main(void) {
 
             case 3:{
                 printf("Course module\n"); 
+                
+                int courseOption = -1;
 
+                while(courseOption != 0){
+                    courseOption = courseMenu();
+
+                    switch(courseOption){
+                        case 0:{
+                            printf("Returning to main menu...\n");
+                            break;
+                        }
+
+                        case 1:{
+                            int returnValue = registerCourse(courseList, cCount, professorList, pCount);
+
+                            switch (returnValue){
+                                case FULL_LIST:{
+                                    printf("The course list is full.\n");
+                                    break;
+                                }
+
+                                case INVALID_REG_NUMBER: {
+                                     printf("Invalid registration number.\n");
+                                     break;
+                                }
+                                case INVALID_DATE: {
+                                    printf("Invalid semester. Try again.\n");
+                                    break;
+                                }
+                                case NOT_FOUND_REG: {
+                                    printf("There are no professor registered. Try again.\n");
+                                    break;
+                                }
+                                default: {
+                                    printf("Successfully registration\n");
+                                    cCount++;
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+
+                        case 2: {
+
+                            int returnUpdate = updateCourseProfessor(courseList, professorList, sCount, cCount);
+                            switch (returnUpdate) {
+                                
+                                case INVALID_REG_NUMBER: {
+                                    printf("Invalid registration number. Try again.");
+                                    break;
+                                }
+                                case NOT_FOUND_REG: {
+                                    printf("There are no registration number. Try again.");
+                                    break;
+                                } default: {
+                                    printf("Updated professor success.");
+                                    break;
+                                }
+
+                            }
+                            break;
+                        }
+
+                        default:{
+                            if(courseOption != 0){
+                                printf("Invalid option. Try again.\n");
+                            }
+                            break;
+                        }
+                    }
+                }
                 break;
             }
 
@@ -707,3 +795,105 @@ int validate_Prof_Date(professor professorList[], int sCount) {
         return INVALID_DATE;
     }
 }
+
+int courseMenu(){
+    int option;
+    printf("\n=== COURSE MODULE ===\n"); 
+    printf("0. Back\n");
+    printf("1. Register course\n");
+    printf("2. Update professor\n");
+    printf("3. Update student\n");
+    printf("4. Insert student\n");
+    printf("5. Delete professor\n");
+    printf("6. Delete student\n");
+    printf("7. List\n");
+    printf("Choose an option: ");
+    scanf("%d", &option);
+
+    return option;
+}
+
+int registerCourse(course courseList[], int cCount, professor professorList[], int count) {
+    int courseCode;
+    char courseName[100];
+    int courseSemester;
+    int professorRegistration;
+
+    if (cCount >= courseSize) {
+        return FULL_LIST;
+    }
+
+    printf("Register course\n");
+    printf("Enter the course code: ");
+    scanf("%d", &courseCode);
+    while (getchar() != '\n');
+
+    if (courseCode < 0) return INVALID_REG_NUMBER;
+
+    printf("Enter the course name: ");
+    fgets(courseName, 100, stdin);
+
+    printf("Enter the course semester: ");
+    scanf("%d", &courseSemester);
+    while (getchar() != '\n');
+
+    if (courseSemester < 1 || courseSemester > 8) return INVALID_DATE;
+
+    printf("Enter the professor registration: ");
+    scanf("%d", &professorRegistration);
+    while (getchar() != '\n');
+
+    int validateProf = findProfessor(professorList, count, professorRegistration);
+    if (validateProf == NOT_FOUND_REG) return NOT_FOUND_REG;
+
+    courseList[cCount].code = courseCode;
+    strcpy(courseList[cCount].courseName, courseName);
+    courseList[cCount].semester = courseSemester;
+    courseList[cCount].professorRegistration = professorRegistration;
+    courseList[cCount].countStu = 0;
+
+    courseList[cCount].courseName[strcspn(courseList[cCount].courseName, "\n")] = '\0';
+
+    return REG_SUCCESS;
+}
+
+int updateCourseProfessor(course courseList[], professor professorList[], int sCount, int cCount) {
+    int courseCode;
+    
+    printf("Enter the course code: ");
+    scanf("%d", &courseCode);
+    
+    if(courseCode < 0) return INVALID_REG_NUMBER;
+    
+    for (int i = 0; i < cCount; i++){
+        if (courseCode == courseList[i].code){
+            int newProfessorRegistration;
+            
+            printf("Current professor registration: %d\n", courseList[i].professorRegistration);
+            printf("Enter the new professor registration: ");
+            scanf("%d", &newProfessorRegistration);
+            
+            if(newProfessorRegistration < 0) 
+                return INVALID_REG_NUMBER;
+            int validateProf = findProfessor(professorList, sCount, newProfessorRegistration);
+            if(validateProf == NOT_FOUND_REG){
+                return NOT_FOUND_REG; 
+            }
+            
+            courseList[i].professorRegistration = newProfessorRegistration;
+            return UPDATE_SUCCESS;
+        }
+    }
+    
+    return NOT_FOUND_REG;
+}
+
+int findProfessor(professor professorList[], int count, int professorRegistration) {
+    for (int i = 0; i < count; i++) {
+        if (professorList[i].professorRegistrationNumber == professorRegistration && professorList[i].active == 1) {
+            return FOUND;
+        }
+    }
+    return NOT_FOUND_REG;
+}
+
