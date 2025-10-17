@@ -1177,3 +1177,61 @@ int deleteCourse(student studentList[], course courseList[], int sCount, int cCo
     
     return 0;
 }
+
+int listCourse(student studentList[], course courseList[], professor professorList[], int sCount, int cCount){
+
+    int listOption = -1;
+
+    while(listOption != 0){
+        printf("\n====DELETE MODULE====\n");
+        printf("0. Back\n");
+        printf("1. list course without students\n");
+        printf("2. list course with students\n");
+        printf("3. list course capacity > 40)\n");
+        printf("Choose an option: ");
+        scanf("%d", &listOption);
+        
+        switch (listOption){
+
+            case 0:{
+                printf("Returning to course menu...\n");
+                break;
+            }
+            case 1: {
+                int courseCode;
+
+                printf("\nList course without students\n");
+                
+                    printf("Enter the course code: ");
+                    scanf("%d", &courseCode);
+
+                if(courseCode < 0){
+                    printf("Invalid code. Try again.\n");
+                    break;
+                }
+
+                int courseIndex = -1;
+                for(int i = 0; i < cCount; i++){
+                    if(courseCode == courseList[i].code && courseList[i].active == 1){
+                        courseIndex = i;
+                        break;
+                    }
+                }
+
+                if(courseIndex == -1){
+                    printf("Course not found.\n");
+                    break;
+                }
+
+                for (int j=0;j<cCount;j++){
+                    printf("Course code: %d\n", courseList[j].code);
+                    printf("Course name: %s\n", courseList[j].courseName);
+                    printf("Course semester: %d\n", courseList[j].semester);
+                    printf("Course professor: %d", courseList[j].professorRegistration);
+                }
+                break;
+            }
+
+        }
+    }
+}
