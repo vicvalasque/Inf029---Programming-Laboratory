@@ -1,7 +1,4 @@
 //Criar geração de relatórios em listas por módulos.
-//Adicionar no módulo de atualização do estudante e do professor as opções de atualizar CPF, NOME e SEXO.
-//Necessário validar CPF e validar os números de matrícula e CPF (não podem se repetir).
-//Mudar opções do módulo de curso.
 
 #include <stdio.h>
 #include <string.h>
@@ -538,16 +535,100 @@ int updateStudent(student studentList[], int sCount){
     
     for(int i = 0; i < sCount; i++){
         if(registrationNumber == studentList[i].studentRegistrationNumber && studentList[i].active == 1){
-            int newRegistrationNumber;
-            printf("Enter the new registration number: ");
-            scanf("%d", &newRegistrationNumber);
+            int updateOption = -1;
+            
+            while(updateOption != 0){
+                printf("\n=== UPDATE STUDENT MENU ===\n");
+                printf("0. Back\n");
+                printf("1. Update registration number\n");
+                printf("2. Update name\n");
+                printf("3. Update sex\n");
+                printf("4. Update CPF\n");
+                printf("Choose an option: ");
+                scanf("%d", &updateOption);
+                
+                switch(updateOption){
+                    case 0:{
+                        printf("Returning to main menu...\n");
+                        break;
+                    }
+                    case 1:{
+                        int newRegistrationNumber;
+                        printf("Enter the new registration number: ");
+                        scanf("%d", &newRegistrationNumber);
 
-            if(newRegistrationNumber < 0){
-                printf("Invalid new registration number.\n");
-                return INVALID_REG_NUMBER;
+                        if(newRegistrationNumber < 0){
+                            printf("Invalid new registration number.\n");
+                            break;
+                        }
+                        
+                        int isDuplicate = 0;
+                        for(int j = 0; j < sCount; j++){
+                            if(j != i && studentList[j].studentRegistrationNumber == newRegistrationNumber && studentList[j].active == 1){
+                                printf("Registration number already exists.\n");
+                                isDuplicate = 1;
+                                break;
+                            }
+                        }
+                        
+                        if(!isDuplicate){
+                            studentList[i].studentRegistrationNumber = newRegistrationNumber;
+                            printf("Registration number updated successfully!\n");
+                        }
+                        break;
+                    }
+                    case 2:{
+                        while(getchar() != '\n');
+                        printf("Enter the new name: ");
+                        fgets(studentList[i].studentName, 100, stdin);
+                        studentList[i].studentName[strcspn(studentList[i].studentName, "\n")] = '\0';
+                        printf("Name updated successfully!\n");
+                        break;
+                    }
+                    case 3:{
+                        char newSex;
+                        printf("Enter the new sex (M/F): ");
+                        scanf(" %c", &newSex);
+                        
+                        if(newSex != 'M' && newSex != 'm' && newSex != 'F' && newSex != 'f'){
+                            printf("Invalid sex!\n");
+                        } else {
+                            studentList[i].studentSex = newSex;
+                            printf("Sex updated successfully!\n");
+                        }
+                        break;
+                    }
+                    case 4:{
+                        while(getchar() != '\n');
+                        char newCPF[15];
+                        printf("Enter the new CPF (123.456.789-10): ");
+                        fgets(newCPF, 15, stdin);
+                        newCPF[strcspn(newCPF, "\n")] = '\0';
+                        
+                        int isDuplicate = 0;
+                        for(int j = 0; j < sCount; j++){
+                            if(j != i && strcmp(studentList[j].studentCPF, newCPF) == 0 && studentList[j].active == 1){
+                                printf("CPF already registered!\n");
+                                isDuplicate = 1;
+                                break;
+                            }
+                        }
+                        
+                        if(!isDuplicate){
+                            strcpy(studentList[i].studentCPF, newCPF);
+                            printf("CPF updated successfully!\n");
+                        }
+                        break;
+                    }
+                    default:{
+                        if(updateOption != 0){
+                            printf("Invalid option. Try again.\n");
+                        }
+                        break;
+                    }
+                }
             }
             
-            studentList[i].studentRegistrationNumber = newRegistrationNumber;
             found = 1;
             break;
         }
@@ -577,200 +658,6 @@ int deleteStudent(student studentList[], int sCount){
             
             for(int j = i; j < sCount - 1; j++){
                 studentList[j] = studentList[j + 1];
-            }
-            break;
-        }
-    }
-    
-    if(found)
-        return DELETED_SUCCESS;
-    else 
-        return NOT_FOUND_REG;
-}
-
-int validate_St_Date(student studentList[], int sCount) {
-    int day = studentList[sCount].day;
-    int month = studentList[sCount].month;
-    int year=studentList[sCount].year;
-
-    if (year>=1950 && year <=2022) {
-        if (month > 0 && month < 13) {
-            if (month == 4 || month == 6 || month == 9 || month == 11) {
-                if (day > 0 && day < 31) {
-                    return VALIDATE_DATE_SUCCESS;
-                }
-                else {
-                    return INVALID_DATE;
-                }
-            }
-            else if (month == 2) {
-                if (day > 0 && day <= 29) {
-                    if (day == 29) {
-                        if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
-                            return VALIDATE_DATE_SUCCESS;
-                        }
-                        else {
-                            return INVALID_DATE;
-                        }
-                    }
-                    else if (day >= 1 && day <= 28) {
-                        return VALIDATE_DATE_SUCCESS;
-                    }
-                    else {
-                        return INVALID_DATE;
-                    }
-                }
-                else {
-                    return INVALID_DATE;
-                }
-            }
-            else if (day > 0 && day < 32) {
-                return VALIDATE_DATE_SUCCESS;
-            }
-            else {
-                return INVALID_DATE;
-            }
-        }
-        else {
-            return INVALID_DATE;
-        }
-    }
-    else {
-        return INVALID_DATE;
-    }
-}
-
-int professorMenu(){
-    int option;
-    printf("\n=== PROFESSOR MODULE ===\n"); 
-    printf("0. Back\n");
-    printf("1. Register professor\n");
-    printf("2. Update professor\n");
-    printf("3. List professor\n");
-    printf("4. Delete professor\n");
-    printf("Choose an option: ");
-    scanf("%d", &option);
-
-    return option;
-}
-
-int registerprofessor(professor professorList[], int sCount){
-    int registrationNumber; 
-    
-
-    if(sCount >= professorSize){
-        return FULL_LIST;
-    }
-    
-    printf("Register professor\n");
-    printf("Enter the registration number: ");
-    scanf("%d", &registrationNumber);
-    
-    while (getchar() != '\n');
-
-    if(registrationNumber < 0){  
-        return INVALID_REG_NUMBER;
-    }
-
-    printf("Enter the professor full name: ");
-    fgets(professorList[sCount].professorName, 100, stdin);
-
-    printf("Sex: ");
-    scanf(" %c", &professorList[sCount].professorSex);
-
-    while (getchar() != '\n');  
-
-    if (professorList[sCount].professorSex != 'M' && professorList[sCount].professorSex != 'm' && professorList[sCount].professorSex != 'F' && professorList[sCount].professorSex != 'f' ){
-        return INVALID_SEX;
-    }
-
-    printf ("Enter the birth date (DD/MM/YYYY): ");
-    scanf("%d/%d/%d",&professorList[sCount].day, &professorList[sCount].month, &professorList[sCount].year);
-
-    while (getchar () != '\n');
-
-    int dateResult = validate_Prof_Date(professorList, sCount);
-    if(dateResult == INVALID_DATE){
-        return INVALID_DATE;
-    }
-
-    printf("Enter the CPF (123.456.789-10): ");
-    fgets(professorList[sCount].professorCPF, 15, stdin);
-
-    professorList[sCount].professorRegistrationNumber = registrationNumber;  
-    professorList[sCount].professorName[strcspn(professorList[sCount].professorName, "\n")] = '\0';
-    professorList[sCount].professorCPF[strcspn(professorList[sCount].professorCPF, "\n")] = '\0';
-    professorList[sCount].active = 1;
-    
-    return REG_SUCCESS;
-}
-
-int updateprofessor(professor professorList[], int sCount){
-    int found = 0;
-    int registrationNumber;
-    
-    printf("Enter the registration number: ");
-    scanf("%d", &registrationNumber);
-    
-    if(registrationNumber < 0){
-        return INVALID_REG_NUMBER;
-    }
-    
-    for(int i = 0; i < sCount; i++){
-        if(registrationNumber == professorList[i].professorRegistrationNumber && professorList[i].active == 1){
-            int newRegistrationNumber;
-            printf("Enter the new registration number: ");
-            scanf("%d", &newRegistrationNumber);
-
-            if(newRegistrationNumber < 0){
-                printf("Invalid new registration number.\n");
-                return INVALID_REG_NUMBER;
-            }
-            
-            professorList[i].professorRegistrationNumber = newRegistrationNumber;
-            found = 1;
-            break;
-        }
-    }
-    
-    if(found)
-        return UPDATE_SUCCESS;
-    else 
-        return NOT_FOUND_REG;
-}
-
-void listprofessor(professor professorList[], int countprofessor) {
-    if (countprofessor == 0) {
-        printf("There are no professors registered.\n");
-    }
-    else {
-        for (int i=0;i<professorSize;i++){
-            printf("Registered professors.\n");
-            if (professorList[i].active==1){
-                    printf("%d: %d\n", i+1,professorList[i].professorRegistrationNumber);
-            }
-        }  
-    }    
-}
-
-int deleteProfessor(professor professorList[], int sCount){
-    int registrationNumber;
-    int found = 0;
-    
-    printf("Enter the registration number: ");
-    scanf("%d", &registrationNumber);
-    
-    if(registrationNumber < 0){
-        return INVALID_REG_NUMBER;
-    }
-    
-    for(int i = 0; i < sCount; i++){
-        if(registrationNumber == professorList[i].professorRegistrationNumber && professorList[i].active == 1){
-            professorList[i].active = 0;
-            found = 1;
-            
-            for(int j = i; j < sCount - 1; j++){
-                professorList[j] = professorList[j + 1];
             }
             break;
         }
@@ -1178,60 +1065,277 @@ int deleteCourse(student studentList[], course courseList[], int sCount, int cCo
     return 0;
 }
 
-int listCourse(student studentList[], course courseList[], professor professorList[], int sCount, int cCount){
+int validate_St_Date(student studentList[], int sCount) {
+    int day = studentList[sCount].day;
+    int month = studentList[sCount].month;
+    int year=studentList[sCount].year;
 
-    int listOption = -1;
-
-    while(listOption != 0){
-        printf("\n====DELETE MODULE====\n");
-        printf("0. Back\n");
-        printf("1. list course without students\n");
-        printf("2. list course with students\n");
-        printf("3. list course capacity > 40)\n");
-        printf("Choose an option: ");
-        scanf("%d", &listOption);
-        
-        switch (listOption){
-
-            case 0:{
-                printf("Returning to course menu...\n");
-                break;
-            }
-            case 1: {
-                int courseCode;
-
-                printf("\nList course without students\n");
-                
-                    printf("Enter the course code: ");
-                    scanf("%d", &courseCode);
-
-                if(courseCode < 0){
-                    printf("Invalid code. Try again.\n");
-                    break;
+    if (year>=1950 && year <=2022) {
+        if (month > 0 && month < 13) {
+            if (month == 4 || month == 6 || month == 9 || month == 11) {
+                if (day > 0 && day < 31) {
+                    return VALIDATE_DATE_SUCCESS;
                 }
+                else {
+                    return INVALID_DATE;
+                }
+            }
+            else if (month == 2) {
+                if (day > 0 && day <= 29) {
+                    if (day == 29) {
+                        if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
+                            return VALIDATE_DATE_SUCCESS;
+                        }
+                        else {
+                            return INVALID_DATE;
+                        }
+                    }
+                    else if (day >= 1 && day <= 28) {
+                        return VALIDATE_DATE_SUCCESS;
+                    }
+                    else {
+                        return INVALID_DATE;
+                    }
+                }
+                else {
+                    return INVALID_DATE;
+                }
+            }
+            else if (day > 0 && day < 32) {
+                return VALIDATE_DATE_SUCCESS;
+            }
+            else {
+                return INVALID_DATE;
+            }
+        }
+        else {
+            return INVALID_DATE;
+        }
+    }
+    else {
+        return INVALID_DATE;
+    }
+}
 
-                int courseIndex = -1;
-                for(int i = 0; i < cCount; i++){
-                    if(courseCode == courseList[i].code && courseList[i].active == 1){
-                        courseIndex = i;
+int professorMenu(){
+    int option;
+    printf("\n=== PROFESSOR MODULE ===\n"); 
+    printf("0. Back\n");
+    printf("1. Register professor\n");
+    printf("2. Update professor\n");
+    printf("3. List professor\n");
+    printf("4. Delete professor\n");
+    printf("Choose an option: ");
+    scanf("%d", &option);
+
+    return option;
+}
+
+int registerprofessor(professor professorList[], int sCount){
+    int registrationNumber; 
+    
+
+    if(sCount >= professorSize){
+        return FULL_LIST;
+    }
+    
+    printf("Register professor\n");
+    printf("Enter the registration number: ");
+    scanf("%d", &registrationNumber);
+    
+    while (getchar() != '\n');
+
+    if(registrationNumber < 0){  
+        return INVALID_REG_NUMBER;
+    }
+
+    printf("Enter the professor full name: ");
+    fgets(professorList[sCount].professorName, 100, stdin);
+
+    printf("Sex: ");
+    scanf(" %c", &professorList[sCount].professorSex);
+
+    while (getchar() != '\n');  
+
+    if (professorList[sCount].professorSex != 'M' && professorList[sCount].professorSex != 'm' && professorList[sCount].professorSex != 'F' && professorList[sCount].professorSex != 'f' ){
+        return INVALID_SEX;
+    }
+
+    printf ("Enter the birth date (DD/MM/YYYY): ");
+    scanf("%d/%d/%d",&professorList[sCount].day, &professorList[sCount].month, &professorList[sCount].year);
+
+    while (getchar () != '\n');
+
+    int dateResult = validate_Prof_Date(professorList, sCount);
+    if(dateResult == INVALID_DATE){
+        return INVALID_DATE;
+    }
+
+    printf("Enter the CPF (123.456.789-10): ");
+    fgets(professorList[sCount].professorCPF, 15, stdin);
+
+    professorList[sCount].professorRegistrationNumber = registrationNumber;  
+    professorList[sCount].professorName[strcspn(professorList[sCount].professorName, "\n")] = '\0';
+    professorList[sCount].professorCPF[strcspn(professorList[sCount].professorCPF, "\n")] = '\0';
+    professorList[sCount].active = 1;
+    
+    return REG_SUCCESS;
+}
+
+int updateprofessor(professor professorList[], int sCount){
+    int found = 0;
+    int registrationNumber;
+    
+    printf("Enter the registration number: ");
+    scanf("%d", &registrationNumber);
+    
+    if(registrationNumber < 0){
+        return INVALID_REG_NUMBER;
+    }
+    
+    for(int i = 0; i < sCount; i++){
+        if(registrationNumber == professorList[i].professorRegistrationNumber && professorList[i].active == 1){
+            int updateOption = -1;
+            
+            while(updateOption != 0){
+                printf("\n=== UPDATE PROFESSOR MENU ===\n");
+                printf("0. Back\n");
+                printf("1. Update registration number\n");
+                printf("2. Update name\n");
+                printf("3. Update sex\n");
+                printf("4. Update CPF\n");
+                printf("Choose an option: ");
+                scanf("%d", &updateOption);
+                
+                switch(updateOption){
+                    case 0:{
+                        printf("Returning...\n");
+                        break;
+                    }
+                    case 1:{
+                        int newRegistrationNumber;
+                        printf("Enter the new registration number: ");
+                        scanf("%d", &newRegistrationNumber);
+
+                        if(newRegistrationNumber < 0){
+                            printf("Invalid new registration number.\n");
+                            break;
+                        }
+                        
+                        // Verifica duplicata
+                        int isDuplicate = 0;
+                        for(int j = 0; j < sCount; j++){
+                            if(j != i && professorList[j].professorRegistrationNumber == newRegistrationNumber && professorList[j].active == 1){
+                                printf("Registration number already exists!\n");
+                                isDuplicate = 1;
+                                break;
+                            }
+                        }
+                        
+                        if(!isDuplicate){
+                            professorList[i].professorRegistrationNumber = newRegistrationNumber;
+                            printf("Registration number updated successfully!\n");
+                        }
+                        break;
+                    }
+                    case 2:{
+                        while(getchar() != '\n');
+                        printf("Enter the new name: ");
+                        fgets(professorList[i].professorName, 100, stdin);
+                        professorList[i].professorName[strcspn(professorList[i].professorName, "\n")] = '\0';
+                        printf("Name updated successfully!\n");
+                        break;
+                    }
+                    case 3:{
+                        char newSex;
+                        printf("Enter the new sex (M/F): ");
+                        scanf(" %c", &newSex);
+                        
+                        if(newSex != 'M' && newSex != 'm' && newSex != 'F' && newSex != 'f'){
+                            printf("Invalid sex!\n");
+                        } else {
+                            professorList[i].professorSex = newSex;
+                            printf("Sex updated successfully!\n");
+                        }
+                        break;
+                    }
+                    case 4:{
+                        while(getchar() != '\n');
+                        char newCPF[15];
+                        printf("Enter the new CPF (123.456.789-10): ");
+                        fgets(newCPF, 15, stdin);
+                        newCPF[strcspn(newCPF, "\n")] = '\0';
+                        
+                        // Verifica duplicata de CPF
+                        int isDuplicate = 0;
+                        for(int j = 0; j < sCount; j++){
+                            if(j != i && strcmp(professorList[j].professorCPF, newCPF) == 0 && professorList[j].active == 1){
+                                printf("CPF already registered!\n");
+                                isDuplicate = 1;
+                                break;
+                            }
+                        }
+                        
+                        if(!isDuplicate){
+                            strcpy(professorList[i].professorCPF, newCPF);
+                            printf("CPF updated successfully!\n");
+                        }
+                        break;
+                    }
+                    default:{
+                        if(updateOption != 0){
+                            printf("Invalid option. Try again.\n");
+                        }
                         break;
                     }
                 }
-
-                if(courseIndex == -1){
-                    printf("Course not found.\n");
-                    break;
-                }
-
-                for (int j=0;j<cCount;j++){
-                    printf("Course code: %d\n", courseList[j].code);
-                    printf("Course name: %s\n", courseList[j].courseName);
-                    printf("Course semester: %d\n", courseList[j].semester);
-                    printf("Course professor: %d", courseList[j].professorRegistration);
-                }
-                break;
             }
+            
+            found = 1;
+            break;
+        }
+    }
+    
+    if(found)
+        return UPDATE_SUCCESS;
+    else 
+        return NOT_FOUND_REG;
+}
 
+void listprofessor(professor professorList[], int countprofessor) {
+    if (countprofessor == 0) {
+        printf("There are no professors registered.\n");
+    }
+    else {
+        for (int i=0;i<professorSize;i++){
+            printf("Registered professors.\n");
+            if (professorList[i].active==1){
+                    printf("%d: %d\n", i+1,professorList[i].professorRegistrationNumber);
+            }
+        }  
+    }    
+}
+
+int deleteProfessor(professor professorList[], int sCount) {
+    int registrationNumber;
+    int found = 0;
+    
+    printf("Enter the registration number: ");
+    scanf("%d", &registrationNumber);
+    
+    if(registrationNumber < 0){
+        return INVALID_REG_NUMBER;
+    }
+    
+    for(int i = 0; i < sCount; i++){
+        if(registrationNumber == professorList[i].professorRegistrationNumber && professorList[i].active == 1){
+            professorList[i].active = 0;
+            found = 1;
+            
+            for(int j = i; j < sCount - 1; j++){
+                professorList[j] = professorList[j + 1];
+            }
+            break;
         }
     }
 }
