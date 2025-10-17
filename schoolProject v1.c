@@ -1339,3 +1339,398 @@ int deleteProfessor(professor professorList[], int sCount) {
         }
     }
 }
+int validate_Prof_Date(professor professorList[], int sCount) {
+    int day = professorList[sCount].day;
+    int month = professorList[sCount].month;
+    int year=professorList[sCount].year;
+
+    if (year>=1950 && year <=2022) {
+        if (month > 0 && month < 13) {
+            if (month == 4 || month == 6 || month == 9 || month == 11) {
+                if (day > 0 && day < 31) {
+                    return VALIDATE_DATE_SUCCESS;
+                }
+                else {
+                    return INVALID_DATE;
+                }
+            }
+            else if (month == 2) {
+                if (day > 0 && day <= 29) {
+                    if (day == 29) {
+                        if ((year % 4 == 0 && year % 100 != 0) || year % 400 == 0) {
+                            return VALIDATE_DATE_SUCCESS;
+                        }
+                        else {
+                            return INVALID_DATE;
+                        }
+                    }
+                    else if (day >= 1 && day <= 28) {
+                        return VALIDATE_DATE_SUCCESS;
+                    }
+                    else {
+                        return INVALID_DATE;
+                    }
+                }
+                else {
+                    return INVALID_DATE;
+                }
+            }
+            else if (day > 0 && day < 32) {
+                return VALIDATE_DATE_SUCCESS;
+            }
+            else {
+                return INVALID_DATE;
+            }
+        }
+        else {
+            return INVALID_DATE;
+        }
+    }
+    else {
+        return INVALID_DATE;
+    }
+}
+
+int courseMenu(){
+    int option;
+    printf("\n=== COURSE MODULE ===\n"); 
+    printf("0. Back\n");
+    printf("1. Register course\n");
+    printf("2. Update\n");
+    printf("3. Insert student\n");
+    printf("4. Delete\n");
+    printf("5. List\n");
+    printf("Choose an option: ");
+    scanf("%d", &option);
+
+    return option;
+}
+
+int registerCourse(course courseList[], int cCount, professor professorList[], int count) {
+    int courseCode;
+    char courseName[100];
+    int courseSemester;
+    int professorRegistration;
+
+    if (cCount >= courseSize) {
+        return FULL_LIST;
+    }
+
+    printf("Register course\n");
+    printf("Enter the course code: ");
+    scanf("%d", &courseCode);
+    while (getchar() != '\n');
+
+    if (courseCode < 0) return INVALID_REG_NUMBER;
+
+    printf("Enter the course name: ");
+    fgets(courseName, 100, stdin);
+
+    printf("Enter the course semester: ");
+    scanf("%d", &courseSemester);
+    while (getchar() != '\n');
+
+    if (courseSemester < 1 || courseSemester > 8) return INVALID_DATE;
+
+    printf("Enter the professor registration: ");
+    scanf("%d", &professorRegistration);
+    while (getchar() != '\n');
+
+    int validateProf = findProfessor(professorList, count, professorRegistration);
+    if (validateProf == NOT_FOUND_REG) return NOT_FOUND_REG;
+
+    courseList[cCount].code = courseCode;
+    strcpy(courseList[cCount].courseName, courseName);
+    courseList[cCount].semester = courseSemester;
+    courseList[cCount].professorRegistration = professorRegistration;
+    courseList[cCount].studentCount = 0;
+    courseList[cCount].active = 1;
+
+    courseList[cCount].courseName[strcspn(courseList[cCount].courseName, "\n")] = '\0';
+
+    return REG_SUCCESS;
+}
+
+int updateCourse(course courseList[], professor professorList[], int sCount, int cCount) {
+    int courseCode;
+    
+    printf("Enter the course code: ");
+    scanf("%d", &courseCode);
+    
+    if(courseCode < 0) 
+        return INVALID_REG_NUMBER;
+    
+    for (int i = 0; i < cCount; i++){
+        if (courseCode == courseList[i].code){
+            
+            int newCode;
+            char newName[100];
+            int newProfessor;
+            int newSemester;
+
+            printf("Enter new code: ");
+            scanf("%d", &newCode);
+
+            if (newCode<0){
+                return INVALID_REG_NUMBER;
+            }
+            while (getchar() != '\n');
+
+            printf("Enter new name: ");
+            fgets(newName, 100,stdin);
+            newName[strcspn(newName, "\n")] = '\0';
+
+            printf("Enter new semester: ");
+            scanf("%d", &newSemester);
+            
+            if (newSemester<1 || newSemester > 8){
+                return INVALID_DATE;
+            }
+            printf("Current professor registration: %d\n", courseList[i].professorRegistration);
+            printf("Enter the new professor registration: ");
+            scanf("%d", &newProfessor);
+            
+            if(newProfessor< 0) 
+                return INVALID_REG_NUMBER;
+            int validateProf = findProfessor(professorList, sCount, newProfessor);
+            if(validateProf == NOT_FOUND_REG){
+                return NOT_FOUND_REG; 
+            }
+            courseList[i].code = newCode;
+            strcpy(courseList[i].courseName, newName);
+            courseList[i].semester = newSemester;
+            courseList[i].professorRegistration = newProfessor;
+            
+            return UPDATE_SUCCESS;
+        }
+    }
+    
+    return NOT_FOUND_REG;
+}
+
+int findProfessor(professor professorList[], int count, int professorRegistration) {
+    for (int i = 0; i < count; i++) {
+        if (professorList[i].professorRegistrationNumber == professorRegistration && professorList[i].active == 1) {
+            return FOUND;
+        }
+    }
+    return NOT_FOUND_REG;
+}
+
+int findStudent(student studentList[], int sCount, int studentRegistration) {
+    for (int i = 0; i < sCount; i++) {
+        if (studentList[i].studentRegistrationNumber == studentRegistration && studentList[i].active == 1) {
+            return FOUND;
+        }
+    }
+    return NOT_FOUND_REG;
+}
+
+int insertStudent(course courseList[], student studentList[], int sCount, int cCount){
+    int courseCode;
+    int studentReg;
+    int maxStudents;
+    
+    printf("Enter the course code: ");
+    scanf("%d", &courseCode);
+    
+    if (courseCode < 0){
+        return INVALID_REG_NUMBER;
+    }
+    
+    int courseIndex = -1;
+    for (int i = 0; i < cCount; i++){
+        if (courseList[i].code == courseCode){
+            courseIndex = i;
+            break;
+        }
+    }
+    
+    if (courseIndex == -1)
+        return NOT_FOUND_REG;
+    
+    printf("How many students do you want to register? ");
+    scanf("%d", &maxStudents);
+    
+    if (maxStudents < 0){
+        return INVALID_REG_NUMBER;
+    }
+    
+    for (int count = 0; count < maxStudents; count++){
+        printf("Enter student registration [%d/%d]: ", count + 1, maxStudents);
+        scanf("%d", &studentReg);
+        
+        if (studentReg <= 0){
+            return INVALID_REG_NUMBER;
+        }
+        
+        int validateStu = findStudent(studentList, sCount, studentReg);
+        if (validateStu == NOT_FOUND_REG){
+            printf("Student not found! Try again.\n");
+            count--; 
+            continue;
+        }
+        
+        int isDuplicate = 0;
+        for (int i = 0; i < courseList[courseIndex].studentCount; i++){
+            if (courseList[courseIndex].insertStudent[i] == studentReg){
+                printf("Student already registered! Try again.\n");
+                isDuplicate = 1;
+                break;
+            }
+        }
+        
+        if (isDuplicate){
+            count--;
+            continue;
+        }
+        
+        if (courseList[courseIndex].studentCount >= 50){
+            printf("Course is full!\n");
+            return FULL_LIST;
+        }
+        
+        int index = courseList[courseIndex].studentCount;
+        courseList[courseIndex].insertStudent[index] = studentReg;
+        courseList[courseIndex].studentCount++;
+    }
+    
+    return REG_SUCCESS;
+}
+
+int deleteCourse(student studentList[], course courseList[], int sCount, int cCount){
+
+    int deleteOption = -1;
+
+    while(deleteOption != 0){
+        printf("\n====DELETE MODULE====\n");
+        printf("0. Back\n");
+        printf("1. Delete course\n");
+        printf("2. Delete student\n");
+        printf("Choose an option: ");
+        scanf("%d", &deleteOption);
+        
+        switch(deleteOption){
+
+            case 0:{
+                printf("Returning to course menu...\n");
+                break;
+            }
+            case 1: {
+                int courseCode;
+                int found = 0;
+
+                printf("Enter the course code: ");
+                scanf("%d", &courseCode);
+
+                if(courseCode < 0){
+                    printf("Invalid code. Try again.\n");
+                    break;
+                }
+                    
+                for(int i = 0; i < cCount; i++){
+                    if(courseCode == courseList[i].code && courseList[i].active == 1){
+                        courseList[i].active = 0;
+                        found = 1;
+                        
+                        for(int j = i; j < cCount - 1; j++){
+                            courseList[j] = courseList[j + 1];
+                        }
+                        break;
+                    }
+                }
+
+                if(found){
+                    printf("Deleted course successfully.\n");
+                    return DELETED_SUCCESS;
+                }
+                else{
+                    printf("Course not found. Try again.\n");
+                }
+                break;
+            }
+            case 2: {
+                int courseCode;
+                int studentReg;
+                int found = 0;
+
+                printf("Enter the course code: ");
+                scanf("%d", &courseCode);
+
+                if(courseCode < 0){
+                    printf("Invalid code. Try again.\n");
+                    break;
+                }
+
+                int courseIndex = -1;
+                for(int i = 0; i < cCount; i++){
+                    if(courseCode == courseList[i].code && courseList[i].active == 1){
+                        courseIndex = i;
+                        break;
+                    }
+                }
+
+                if(courseIndex == -1){
+                    printf("Course not found.\n");
+                    break;
+                }
+
+                
+                if(courseList[courseIndex].studentCount == 0){
+                    printf("No students enrolled in this course.\n");
+                    break;
+                }
+
+                
+                printf("\n=== Students enrolled in this course ===\n");
+                for(int i = 0; i < courseList[courseIndex].studentCount; i++){
+                    int studentReg = courseList[courseIndex].insertStudent[i];
+                    
+                    for(int j = 0; j < sCount; j++){
+                        if(studentList[j].studentRegistrationNumber == studentReg && studentList[j].active == 1){
+                            printf("%d. Registration: %d - Name: %s\n", 
+                                i+1, studentReg, studentList[j].studentName);
+                            break;
+                        }
+                    }
+                }
+
+                printf("\nEnter student registration to remove: ");
+                scanf("%d", &studentReg);
+
+                if(studentReg <= 0){
+                    printf("Invalid registration.\n");
+                    break;
+                }
+
+                for(int i = 0; i < courseList[courseIndex].studentCount; i++){
+                    if(courseList[courseIndex].insertStudent[i] == studentReg){
+                        found = 1;
+                        
+                        for(int j = i; j < courseList[courseIndex].studentCount - 1; j++){
+                            courseList[courseIndex].insertStudent[j] = courseList[courseIndex].insertStudent[j + 1];
+                        }
+                        
+                        courseList[courseIndex].studentCount--;
+                        printf("Student removed from course successfully.\n");
+                        break;
+                    }
+                }
+
+                if(!found){
+                    printf("Student not found in this course.\n");
+                }
+
+                break;
+            }
+            default:{
+                if(deleteOption != 0){
+                    printf("Invalid option. Try again.\n");
+                }
+                break;
+            }
+        }
+    }
+    
+    return 0;
+}
